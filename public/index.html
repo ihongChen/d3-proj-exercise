@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<head>
+  <meta name="name" content="content">
+  <title>d3js sample</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link href='http://fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>
+  <style>
+
+    .axis text {
+      font-family: 'Poiret One', cursive;
+      font-size: 16pt;
+    }
+    .axis .label {
+      font-size: 20pt;
+    }
+
+    .axis path, .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>D3js Hello</h1>
+  <script type="text/javascript">
+    var outerWidth = 400;
+    var outerHeight = 350;
+    var margin = { left: 60, top: 5, right: 5, bottom: 60 };
+    var rMin = 1; // "r" stands for radius
+    var rMax = 6;
+    var xColumn = "sepal_length";
+    var yColumn = "petal_length";
+    var rColumn = "sepal_width";
+    var colorColumn = "species";
+
+    var opacityCircles =0.7;
+
+    var xAxisLabelText = "Sepal Length (cm)";
+    var xAxisLabelOffset = 48;
+
+    var yAxisLabelText = "Petal Length (cm)";
+    var yAxisLabelOffset = 30;
+
+    var innerWidth  = outerWidth  - margin.left - margin.right;
+    var innerHeight = outerHeight - margin.top  - margin.bottom;
+
+    var svg = d3.select("body").append("svg")
+      .attr("width", outerWidth)
+      .attr("height", outerHeight);
+    var g = svg.append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var tooltip = d3.select("body")
+      .append("div")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden")
+      .style("background", "#000")
+      .text("a simple tooltip");
+
+    var xAxisG = g.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + innerHeight + ")")
+    var xAxisLabel = xAxisG.append("text")
+      .style("text-anchor", "middle")
+      .attr("x", innerWidth / 2)
+      .attr("y", xAxisLabelOffset)
+      .attr("class", "label")
+      .text(xAxisLabelText);
+    var yAxisG = g.append("g")
+      .attr("class", "y axis");
+    var yAxisLabel = yAxisG.append("text")
+      .style("text-anchor", "middle")
+      .attr("transform", "translate(-" + yAxisLabelOffset + "," + (innerHeight / 2) + ") rotate(-90)")
+      .attr("class", "label")
+      .text(yAxisLabelText);
+
+    var xScale = d3.scale.linear().range([0, innerWidth]);
+    var yScale = d3.scale.linear().range([innerHeight, 0]);
+    var rScale = d3.scale.linear().range([rMin, rMax]);
+    var colorScale = d3.scale.category10();
+
+    var xAxis = d3.svg.axis().scale(xScale).orient("bottom")
+      .ticks(5)
+      .tickFormat(d3.format("s"))
+      .outerTickSize(0);
+    var yAxis = d3.svg.axis().scale(yScale).orient("left")
+      .ticks(5)
+      .tickFormat(d3.format("s"))
+      .outerTickSize(0);
+
+    function render(data){
+      xScale.domain(d3.extent(data, function (d){ return d[xColumn]; }));
+      yScale.domain(d3.extent(data, function (d){ return d[yColumn]; }));
+      rScale.domain(d3.extent(data, function (d){ return d[rColumn]; }));
+
+      xAxisG.call(xAxis);
+      yAxisG.call(yAxis);
+
+      var circles = g.selectAll("circle").data(data);
+      circles.enter().append("circle");
+      circles
+        .attr("cx",      function (d){ return       xScale(d[xColumn]);     })
+        .attr("cy",      function (d){ return       yScale(d[yColumn]);     })
+        .attr("r",       function (d){ return       rScale(d[rColumn]);     })
+        .attr("fill",    function (d){ return   colorScale(d[colorColumn]); })
+        .on("mouseover", showTooltip)
+        .on("mouseout" , removeTooltip);
+
+
+      circles.exit().remove();
+    }
+
+    function type(d){
+      d.sepal_length = +d.sepal_length;
+      d.sepal_width  = +d.sepal_width;
+      d.petal_length = +d.petal_length;
+      d.petal_width  = +d.petal_width;
+      return d;
+    }
+
+
+  ///////////////////////////////////////////////////////////////////////////
+  /////////////////// Hover functions of the circles ////////////////////////
+  ///////////////////////////////////////////////////////////////////////////
+
+    //Hide the tooltip when the mouse moves away
+    function removeTooltip() {
+
+    	//Fade out the circle to normal opacity
+    	d3.select(this).style("opacity", opacityCircles);
+
+    	//Hide tooltip
+    	$('.popover').each(function() {
+    		$(this).remove();
+    	});
+
+    }//function removeTooltip
+
+  //Show the tooltip on the hovered over slice
+    function showTooltip(d) {
+
+    	//Define and show the tooltip
+    	$(this).popover({
+    		placement: 'auto top',
+    		container: 'body',
+    		trigger: 'manual',
+    		html : true,
+    		content: function() {
+    			return "<span style='font-size: 11px; text-align: center;'>"
+            +"(" +d[xColumn] +"," + d[yColumn] +")"+ "</span>";
+        }
+    	});
+    	$(this).popover('show');
+
+    	//Make chosen circle more visible
+    	d3.select(this).style("opacity", 1);
+    } // function showTooltip
+
+    ///////////////////////////////////////////////////////////////////////////
+    //////////////////////// loading data and drawing  ////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    d3.json("./plot?id=2", function(data){
+      render(type(data));
+    });
+  </script>
+</body>

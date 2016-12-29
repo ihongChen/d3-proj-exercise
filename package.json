@@ -1,0 +1,17 @@
+{
+  "name": "d3_sample",
+  "version": "1.0.0",
+  "description": "my first sample for d3js",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "d3js"
+  ],
+  "author": "ihong",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.15.2"
+  }
+}
